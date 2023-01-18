@@ -126,7 +126,7 @@ public class ReflectUtil {
      */
     public static Set<Class<?>> allTypesOf(Object o) {      
         // TODO 1.02
-    	Set<Class<?>> types = new HashSet<>();
+    	/*Set<Class<?>> types = new HashSet<>();
     	Class<?> c = o.getClass();
     	types.add(c);
     	types.addAll(Arrays.asList(c.getInterfaces()));
@@ -135,7 +135,20 @@ public class ReflectUtil {
     		types.add(c);
     		types.addAll(Arrays.asList(c.getInterfaces()));
     	}
-    	return types;
+    	return types;*/
+    	var allTypes = new HashSet<Class<?>>();
+        allTypesOf(o.getClass(), allTypes);
+        return allTypes;
+    	
+    }
+    private static void allTypesOf(Class<?> c, HashSet<Class<?>> allTypes) {
+        if (c != null) {
+            allTypes.add(c);
+            allTypesOf(c.getSuperclass(), allTypes);
+            for (var sc : c.getInterfaces()) {
+                allTypesOf(sc, allTypes);
+            }
+        }
     }
         
     /**
@@ -154,14 +167,18 @@ public class ReflectUtil {
     public static void maz(Object o) throws IllegalAccessException {
     // TODO 1.03
         	Class<?> c = o.getClass();
-        	for(Field f: c.getDeclaredFields()) {
-        		f.setAccessible(true);
+        	try {
+				
+			
+        	for(Field f: c.getDeclaredFields()) // pour le attribut privé et pas 
+        		{
+        		f.setAccessible(true); // permet de modifier les champs privées 
         		if(f.getType().isPrimitive()) {
         			if(f.getType() == int.class) {
         				f.setInt(o, 0);
         			}
         			else if(f.getType() == long.class) {
-        				f.setLong(o, 0);
+        				f.setLong(o, 0); // pour tester si 
         			}
         			else if(f.getType() == double.class) {
         				f.setDouble(o, 0);
@@ -180,12 +197,16 @@ public class ReflectUtil {
         			}
         			else if(f.getType() == byte.class) {
         				f.setByte(o, (byte) 0);
+        				
         			}
         		}
         		else {
         			f.set(o, null);
         		}
         	}
+        	} catch (IllegalAccessException e) {
+				// TODO: handle exception
+			}
     }
 
     /**
@@ -215,17 +236,22 @@ public class ReflectUtil {
      * @param c un objet de classe
      * @return la liste des super-classes de c
      */
-    public static List<Class<?>> getSuperClasses(Class<?> c) {
+    public static List<Class<?>> getSuperClasses(Class<?> c)
+    {
+        if(c == null) return null;
+
+        LinkedList<Class<?>> list = new LinkedList<>();
+
+        if(c.isPrimitive()) return list;
+
+        while(c != null)
+        {
+            list.add(c);
+            c = c.getSuperclass();
+        }
+
+        return list;
     // TODO 1.04
-        	List<Class<?>> superClasses = new ArrayList<>();
-        	if(c != null) {
-        		superClasses.add(c);
-        		while(c.getSuperclass() != null) {
-        			c = c.getSuperclass();
-        			superClasses.add(c);
-        		}
-        	}
-        	return superClasses;
     }
 
     /**
@@ -251,7 +277,14 @@ public class ReflectUtil {
      * @return la plus proche classe parente commune à c1 et c2.
      */
     public static Class<?> pppc(Class<?> c1, Class<?> c2) {
-        return null;
+    	List<Class<?>> supeClassC1 = getSuperClasses(c1);
+    	List<Class<?>> supeClassC2 = getSuperClasses(c2);
+    	
+    	supeClassC1.retainAll(supeClassC2);
+    	return supeClassC1.get(0);
+
+    	
+
     // TODO 1.05
     }
 
@@ -273,7 +306,7 @@ public class ReflectUtil {
      * @return la plus proche classe parente commune aux classes de o1 et o2
      */
     public static Class<?> pppcoo(Object o1, Object o2) {
-        return null;
+    	return pppc(o1.getClass(), o2.getClass());
     // TODO 1.06
     }
 
